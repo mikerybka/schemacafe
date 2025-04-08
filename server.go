@@ -15,7 +15,7 @@ type Server struct {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	_, authorized, err := s.auth(r)
+	userID, authorized, err := s.auth(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -29,12 +29,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux := http.NewServeMux()
 
 	// Landing page
-	mux.Handle("GET /{$}", util.NewTemplateServer[Root](rootTemplate, filepath.Join(s.Workdir, "root")))
+	mux.Handle("GET /{$}", util.NewTemplateServer[Root](rootTemplate, s.Workdir, userID))
 
 	// Create account
-	mux.HandleFunc("GET /auth/create-account", func(w http.ResponseWriter, r *http.Request) {
-
-	})
+	mux.Handle("GET /auth/create-account", util.NewTemplateServer[CreateAccount](createAccountTemplate, s.Workdir, userID))
 	mux.HandleFunc("POST /auth/create-account", func(w http.ResponseWriter, r *http.Request) {
 		req := &struct {
 			Username        string `json:"username"`
@@ -80,11 +78,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Login
-	mux.HandleFunc("GET /auth/login", func(w http.ResponseWriter, r *http.Request) {})
+	mux.Handle("GET /auth/login", util.NewTemplateServer[Login](loginTemplate, s.Workdir, userID))
 	mux.HandleFunc("POST /auth/login", func(w http.ResponseWriter, r *http.Request) {})
 
 	// Logout
-	mux.HandleFunc("GET /auth/logout", func(w http.ResponseWriter, r *http.Request) {})
+	mux.Handle("GET /auth/logout", util.NewTemplateServer[Logout](logoutTemplate, s.Workdir, userID))
 	mux.HandleFunc("POST /auth/logout", func(w http.ResponseWriter, r *http.Request) {})
 
 	// Create org
