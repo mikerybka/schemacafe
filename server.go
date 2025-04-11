@@ -147,34 +147,3 @@ func (s *Server) putSchemaFields(w http.ResponseWriter, r *http.Request)     {}
 func (s *Server) authentication() authentication.Service {
 	return basicauth.NewServer(filepath.Join(s.Workdir, "auth"))
 }
-
-func (s *Server) auth(r *http.Request) (string, bool, error) {
-	userID, err := s.authentication().GetUserID(r)
-	if err != nil {
-		return "", false, err
-	}
-
-	if isPublicPath(r) {
-		return userID, true, nil
-	}
-
-	if r.PathValue("orgID") == userID {
-		return userID, true, nil
-	}
-
-	return userID, false, nil
-}
-
-func isPublicPath(r *http.Request) bool {
-	publicPaths := []string{
-		"/",
-		"/auth/create-account",
-		"/auth/login",
-	}
-	for _, path := range publicPaths {
-		if path == r.URL.Path {
-			return true
-		}
-	}
-	return false
-}
