@@ -4,11 +4,10 @@
         <title>Schema.cafe</title>
     </head>
     <body>
-        <pre>{{ if eq .UserID "public" }}
-<a href="/auth/login">login</a>
-<a href="/auth/create-account">create account</a>
+<pre>{{ if eq .UserID "public" }}<a href="/auth/login">Login</a>
+<a href="/auth/create-account">Create Account</a>
 {{ else }}
-<a href="/home">home</a>
+<a href="/home">Home</a>
 {{ end }}
 </pre>
     </body>
