@@ -144,13 +144,6 @@ func (s *Server) putSchemaPluralName(w http.ResponseWriter, r *http.Request) {}
 func (s *Server) getSchemaFields(w http.ResponseWriter, r *http.Request)     {}
 func (s *Server) putSchemaFields(w http.ResponseWriter, r *http.Request)     {}
 
-var tlpBlocklist = []string{
-	"public",
-	"auth",
-	"home",
-	"mike",
-}
-
 func (s *Server) authentication() authentication.Service {
 	return basicauth.NewServer(filepath.Join(s.Workdir, "auth"))
 }
