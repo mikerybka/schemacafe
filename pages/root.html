@@ -4,6 +4,12 @@
         <title>Schema.cafe</title>
     </head>
     <body>
-        <pre>www.schema.cafe</pre>
+        <pre>{{ if eq .UserID "public" }}
+<a href="/auth/login">login</a>
+<a href="/auth/create-account">create account</a>
+{{ else }}
+<a href="/home">home</a>
+{{ end }}
+</pre>
     </body>
 </html>
