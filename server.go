@@ -51,16 +51,23 @@ func (s *Server) getRoot(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	util.NewTemplateServer[Root](rootTemplate, s.Workdir, userID).ServeHTTP(w, r)
-}
-
-func (s *Server) getCreateAccount(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	err = rootTemplate.Execute(w, struct {
+		UserID string
+	}{
+		UserID: userID,
+	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	util.NewTemplateServer[CreateAccount](createAccountTemplate, s.Workdir, userID).ServeHTTP(w, r)
+}
+
+func (s *Server) getCreateAccount(w http.ResponseWriter, r *http.Request) {
+	err := createAccountTemplate.Execute(w, struct{}{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
@@ -107,21 +114,19 @@ func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) getLogin(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	err := loginTemplate.Execute(w, struct{}{})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	util.NewTemplateServer[Login](loginTemplate, s.Workdir, userID)
 }
 func (s *Server) postLogin(w http.ResponseWriter, r *http.Request) {}
 func (s *Server) getLogout(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	err := logoutTemplate.Execute(w, struct{}{})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	util.NewTemplateServer[Logout](logoutTemplate, s.Workdir, userID)
 }
 func (s *Server) postLogout(w http.ResponseWriter, r *http.Request)          {}
 func (s *Server) getNewOrg(w http.ResponseWriter, r *http.Request)           {}
