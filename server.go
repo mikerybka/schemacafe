@@ -61,7 +61,6 @@ func (s *Server) getRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 func (s *Server) getCreateAccount(w http.ResponseWriter, r *http.Request) {
 	err := createAccountTemplate.Execute(w, struct{}{})
 	if err != nil {
@@ -69,7 +68,6 @@ func (s *Server) getCreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 	req := &struct {
 		Username        string `json:"username"`
@@ -128,26 +126,271 @@ func (s *Server) getLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (s *Server) postLogout(w http.ResponseWriter, r *http.Request)          {}
-func (s *Server) getNewOrg(w http.ResponseWriter, r *http.Request)           {}
-func (s *Server) putOrg(w http.ResponseWriter, r *http.Request)              {}
-func (s *Server) getHome(w http.ResponseWriter, r *http.Request)             {}
-func (s *Server) getDeleteOrg(w http.ResponseWriter, r *http.Request)        {}
-func (s *Server) deleteOrg(w http.ResponseWriter, r *http.Request)           {}
-func (s *Server) getOrg(w http.ResponseWriter, r *http.Request)              {}
-func (s *Server) getDeleteLib(w http.ResponseWriter, r *http.Request)        {}
-func (s *Server) deleteLib(w http.ResponseWriter, r *http.Request)           {}
-func (s *Server) getCreateLib(w http.ResponseWriter, r *http.Request)        {}
-func (s *Server) putLib(w http.ResponseWriter, r *http.Request)              {}
-func (s *Server) getCreateSchema(w http.ResponseWriter, r *http.Request)     {}
-func (s *Server) putSchema(w http.ResponseWriter, r *http.Request)           {}
-func (s *Server) getSchema(w http.ResponseWriter, r *http.Request)           {}
-func (s *Server) getSchemaName(w http.ResponseWriter, r *http.Request)       {}
-func (s *Server) putSchemaName(w http.ResponseWriter, r *http.Request)       {}
-func (s *Server) getSchemaPluralName(w http.ResponseWriter, r *http.Request) {}
-func (s *Server) putSchemaPluralName(w http.ResponseWriter, r *http.Request) {}
-func (s *Server) getSchemaFields(w http.ResponseWriter, r *http.Request)     {}
-func (s *Server) putSchemaFields(w http.ResponseWriter, r *http.Request)     {}
+func (s *Server) postLogout(w http.ResponseWriter, r *http.Request) {}
+func (s *Server) getNewOrg(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = newOrgTemplate.Execute(w, struct {
+		UserID string
+	}{
+		UserID: userID,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+func (s *Server) putOrg(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
+func (s *Server) getHome(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = homeTemplate.Execute(w, struct {
+		UserID string
+	}{
+		UserID: userID,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+func (s *Server) getDeleteOrg(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
+func (s *Server) deleteOrg(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
+func (s *Server) getOrg(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	err = orgTemplate.Execute(w, struct {
+		UserID string
+	}{
+		UserID: userID,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+func (s *Server) getDeleteLib(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
+func (s *Server) deleteLib(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
+func (s *Server) getCreateLib(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	err = newLibTemplate.Execute(w, struct {
+		UserID string
+	}{
+		UserID: userID,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+func (s *Server) putLib(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
+func (s *Server) getCreateSchema(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	err = newSchemaTemplate.Execute(w, struct {
+		UserID string
+	}{
+		UserID: userID,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+func (s *Server) putSchema(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
+func (s *Server) getSchema(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	err = schemaTemplate.Execute(w, struct {
+		UserID string
+	}{
+		UserID: userID,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+func (s *Server) getSchemaName(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	err = schemaNameTemplate.Execute(w, struct {
+		UserID string
+	}{
+		UserID: userID,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+func (s *Server) putSchemaName(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
+func (s *Server) getSchemaPluralName(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
+func (s *Server) putSchemaPluralName(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
+func (s *Server) getSchemaFields(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
+func (s *Server) putSchemaFields(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.PathValue("orgID") == userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+}
 
 func (s *Server) authentication() authentication.Service {
 	return basicauth.NewServer(filepath.Join(s.Workdir, "auth"))
