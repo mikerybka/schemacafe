@@ -15,121 +15,134 @@ type Server struct {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	userID, authorized, err := s.auth(r)
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /{$}", s.getRoot)
+	mux.HandleFunc("GET /auth/create-account", s.getCreateAccount)
+	mux.HandleFunc("POST /auth/create-account", s.postCreateAccount)
+	mux.HandleFunc("GET /auth/login", s.getLogin)
+	mux.HandleFunc("POST /auth/login", s.postLogin)
+	mux.HandleFunc("GET /auth/logout", s.getLogout)
+	mux.HandleFunc("POST /auth/logout", s.postLogout)
+	mux.HandleFunc("GET /new", s.getNewOrg)
+	mux.HandleFunc("PUT /{orgID}", s.putOrg)
+	mux.HandleFunc("GET /home", s.getHome)
+	mux.HandleFunc("GET /{orgID}/delete", s.getDeleteOrg)
+	mux.HandleFunc("DELETE /{orgID}", s.deleteOrg)
+	mux.HandleFunc("GET /{orgID}/new", s.getCreateLib)
+	mux.HandleFunc("PUT /{orgID}/{libID}", s.putLib)
+	mux.HandleFunc("GET /{orgID}", s.getOrg)
+	mux.HandleFunc("GET /{orgID}/{libID}/delete", s.getDeleteLib)
+	mux.HandleFunc("DELETE /{orgID}/{libID}", s.deleteLib)
+	mux.HandleFunc("GET /{orgID}/{libID}/new", s.getCreateSchema)
+	mux.HandleFunc("PUT /{orgID}/{libID}/{schemaID}", s.putSchema)
+	mux.HandleFunc("GET /{orgID}/{libID}/{schemaID}", s.getSchema)
+	mux.HandleFunc("GET /{orgID}/{libID}/{schemaID}/name", s.getSchemaName)
+	mux.HandleFunc("PUT /{orgID}/{libID}/{schemaID}/name", s.putSchemaName)
+	mux.HandleFunc("GET /{orgID}/{libID}/{schemaID}/plural-name", s.getSchemaPluralName)
+	mux.HandleFunc("PUT /{orgID}/{libID}/{schemaID}/plural-name", s.putSchemaPluralName)
+	mux.HandleFunc("GET /{orgID}/{libID}/{schemaID}/fields", s.getSchemaFields)
+	mux.HandleFunc("PUT /{orgID}/{libID}/{schemaID}/fields", s.putSchemaFields)
+	mux.ServeHTTP(w, r)
+}
+
+func (s *Server) getRoot(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	util.NewTemplateServer[Root](rootTemplate, s.Workdir, userID).ServeHTTP(w, r)
+}
 
-	if !authorized {
-		http.NotFound(w, r)
+func (s *Server) getCreateAccount(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	util.NewTemplateServer[CreateAccount](createAccountTemplate, s.Workdir, userID).ServeHTTP(w, r)
+}
 
-	mux := http.NewServeMux()
-
-	// Landing page
-	mux.Handle("GET /{$}", util.NewTemplateServer[Root](rootTemplate, s.Workdir, userID))
-
-	// Create account
-	mux.Handle("GET /auth/create-account", util.NewTemplateServer[CreateAccount](createAccountTemplate, s.Workdir, userID))
-	mux.HandleFunc("POST /auth/create-account", func(w http.ResponseWriter, r *http.Request) {
-		req := &struct {
-			Username        string `json:"username"`
-			Password        string `json:"password"`
-			ConfirmPassword string `json:"confirmPassword"`
-		}{}
-		if util.ContentType(r, "application/json") {
-			err = json.NewDecoder(r.Body).Decode(req)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-		} else {
-			req.Username = r.FormValue("username")
-			req.Password = r.FormValue("password")
-			req.ConfirmPassword = r.FormValue("confirm_password")
-		}
-
-		token, err := s.authentication().Join(req.Username, req.Password, req.ConfirmPassword)
+func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
+	req := &struct {
+		Username        string `json:"username"`
+		Password        string `json:"password"`
+		ConfirmPassword string `json:"confirmPassword"`
+	}{}
+	if util.ContentType(r, "application/json") {
+		err := json.NewDecoder(r.Body).Decode(req)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+	} else {
+		req.Username = r.FormValue("username")
+		req.Password = r.FormValue("password")
+		req.ConfirmPassword = r.FormValue("confirm_password")
+	}
 
-		if util.Accept(r, "application/json") {
-			err = json.NewEncoder(w).Encode(token)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			http.SetCookie(w, &http.Cookie{
-				Name:  "user_id",
-				Value: req.Username,
-				Path:  "/",
-			})
-			http.SetCookie(w, &http.Cookie{
-				Name:  "token",
-				Value: token,
-				Path:  "/",
-			})
-			http.Redirect(w, r, "/home", http.StatusSeeOther)
+	token, err := s.authentication().Join(req.Username, req.Password, req.ConfirmPassword)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if util.Accept(r, "application/json") {
+		err = json.NewEncoder(w).Encode(token)
+		if err != nil {
+			panic(err)
 		}
-	})
-
-	// Login
-	mux.Handle("GET /auth/login", util.NewTemplateServer[Login](loginTemplate, s.Workdir, userID))
-	mux.HandleFunc("POST /auth/login", func(w http.ResponseWriter, r *http.Request) {})
-
-	// Logout
-	mux.Handle("GET /auth/logout", util.NewTemplateServer[Logout](logoutTemplate, s.Workdir, userID))
-	mux.HandleFunc("POST /auth/logout", func(w http.ResponseWriter, r *http.Request) {})
-
-	// Create org
-	mux.HandleFunc("GET /new", func(w http.ResponseWriter, r *http.Request) {})
-	mux.HandleFunc("PUT /{orgID}", func(w http.ResponseWriter, r *http.Request) {})
-
-	// View orgs
-	mux.HandleFunc("GET /home", func(w http.ResponseWriter, r *http.Request) {})
-
-	// Delete org
-	mux.HandleFunc("GET /{orgID}/delete", func(w http.ResponseWriter, r *http.Request) {})
-	mux.HandleFunc("DELETE /{orgID}", func(w http.ResponseWriter, r *http.Request) {})
-
-	// Create lib
-	mux.HandleFunc("GET /{orgID}/new", func(w http.ResponseWriter, r *http.Request) {})
-	mux.HandleFunc("PUT /{orgID}/{libID}", func(w http.ResponseWriter, r *http.Request) {})
-
-	// View libs
-	mux.HandleFunc("GET /{orgID}", func(w http.ResponseWriter, r *http.Request) {})
-
-	// Delete lib
-	mux.HandleFunc("DELETE /{orgID}/{libID}", func(w http.ResponseWriter, r *http.Request) {})
-
-	// Create schema
-	mux.HandleFunc("GET /{orgID}/{libID}/new", func(w http.ResponseWriter, r *http.Request) {})
-	mux.HandleFunc("PUT /{orgID}/{libID}/{schemaID}", func(w http.ResponseWriter, r *http.Request) {})
-
-	// View schema
-	mux.HandleFunc("GET /{orgID}/{libID}/{schemaID}", func(w http.ResponseWriter, r *http.Request) {})
-
-	// Set name
-	mux.HandleFunc("GET /{orgID}/{libID}/{schemaID}/name", func(w http.ResponseWriter, r *http.Request) {})
-	mux.HandleFunc("PUT /{orgID}/{libID}/{schemaID}/name", func(w http.ResponseWriter, r *http.Request) {})
-
-	// Set plural name
-	mux.HandleFunc("GET /{orgID}/{libID}/{schemaID}/plural-name", func(w http.ResponseWriter, r *http.Request) {})
-	mux.HandleFunc("PUT /{orgID}/{libID}/{schemaID}/plural-name", func(w http.ResponseWriter, r *http.Request) {})
-
-	// Set fields
-	mux.HandleFunc("GET /{orgID}/{libID}/{schemaID}/fields", func(w http.ResponseWriter, r *http.Request) {})
-	mux.HandleFunc("PUT /{orgID}/{libID}/{schemaID}/fields", func(w http.ResponseWriter, r *http.Request) {
-
-	})
-
-	// Delete schema
-	mux.ServeHTTP(w, r)
+	} else {
+		http.SetCookie(w, &http.Cookie{
+			Name:  "user_id",
+			Value: req.Username,
+			Path:  "/",
+		})
+		http.SetCookie(w, &http.Cookie{
+			Name:  "token",
+			Value: token,
+			Path:  "/",
+		})
+		http.Redirect(w, r, "/home", http.StatusSeeOther)
+	}
 }
+func (s *Server) getLogin(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	util.NewTemplateServer[Login](loginTemplate, s.Workdir, userID)
+}
+func (s *Server) postLogin(w http.ResponseWriter, r *http.Request) {}
+func (s *Server) getLogout(w http.ResponseWriter, r *http.Request) {
+	userID, err := s.authentication().GetUserID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	util.NewTemplateServer[Logout](logoutTemplate, s.Workdir, userID)
+}
+func (s *Server) postLogout(w http.ResponseWriter, r *http.Request)          {}
+func (s *Server) getNewOrg(w http.ResponseWriter, r *http.Request)           {}
+func (s *Server) putOrg(w http.ResponseWriter, r *http.Request)              {}
+func (s *Server) getHome(w http.ResponseWriter, r *http.Request)             {}
+func (s *Server) getDeleteOrg(w http.ResponseWriter, r *http.Request)        {}
+func (s *Server) deleteOrg(w http.ResponseWriter, r *http.Request)           {}
+func (s *Server) getOrg(w http.ResponseWriter, r *http.Request)              {}
+func (s *Server) getDeleteLib(w http.ResponseWriter, r *http.Request)        {}
+func (s *Server) deleteLib(w http.ResponseWriter, r *http.Request)           {}
+func (s *Server) getCreateLib(w http.ResponseWriter, r *http.Request)        {}
+func (s *Server) putLib(w http.ResponseWriter, r *http.Request)              {}
+func (s *Server) getCreateSchema(w http.ResponseWriter, r *http.Request)     {}
+func (s *Server) putSchema(w http.ResponseWriter, r *http.Request)           {}
+func (s *Server) getSchema(w http.ResponseWriter, r *http.Request)           {}
+func (s *Server) getSchemaName(w http.ResponseWriter, r *http.Request)       {}
+func (s *Server) putSchemaName(w http.ResponseWriter, r *http.Request)       {}
+func (s *Server) getSchemaPluralName(w http.ResponseWriter, r *http.Request) {}
+func (s *Server) putSchemaPluralName(w http.ResponseWriter, r *http.Request) {}
+func (s *Server) getSchemaFields(w http.ResponseWriter, r *http.Request)     {}
+func (s *Server) putSchemaFields(w http.ResponseWriter, r *http.Request)     {}
 
 var tlpBlocklist = []string{
 	"public",
