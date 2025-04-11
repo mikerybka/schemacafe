@@ -2,6 +2,7 @@ package schemacafe
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"path/filepath"
 
@@ -149,8 +150,13 @@ func (s *Server) putOrg(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
@@ -176,8 +182,13 @@ func (s *Server) getDeleteOrg(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
@@ -187,8 +198,13 @@ func (s *Server) deleteOrg(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
@@ -198,8 +214,13 @@ func (s *Server) getOrg(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 	err = orgTemplate.Execute(w, struct {
@@ -218,8 +239,13 @@ func (s *Server) getDeleteLib(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
@@ -229,8 +255,13 @@ func (s *Server) deleteLib(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
@@ -240,8 +271,13 @@ func (s *Server) getCreateLib(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 	err = newLibTemplate.Execute(w, struct {
@@ -260,8 +296,13 @@ func (s *Server) putLib(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
@@ -271,8 +312,13 @@ func (s *Server) getCreateSchema(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 	err = newSchemaTemplate.Execute(w, struct {
@@ -291,8 +337,13 @@ func (s *Server) putSchema(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
@@ -302,8 +353,13 @@ func (s *Server) getSchema(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 	err = schemaTemplate.Execute(w, struct {
@@ -322,8 +378,13 @@ func (s *Server) getSchemaName(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 	err = schemaNameTemplate.Execute(w, struct {
@@ -342,8 +403,13 @@ func (s *Server) putSchemaName(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
@@ -353,8 +419,13 @@ func (s *Server) getSchemaPluralName(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
@@ -364,8 +435,13 @@ func (s *Server) putSchemaPluralName(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
@@ -375,8 +451,13 @@ func (s *Server) getSchemaFields(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
@@ -386,8 +467,13 @@ func (s *Server) putSchemaFields(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if userID == "public" {
+		redirectTo := fmt.Sprintf("/auth/login?target=%s", r.URL.Path)
+		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
+		return
+	}
 	if r.PathValue("orgID") == userID {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
 }
