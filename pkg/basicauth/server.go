@@ -2,6 +2,7 @@ package basicauth
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"path/filepath"
 
@@ -58,6 +59,7 @@ func (s *Server) GetUserID(r *http.Request) (string, error) {
 }
 
 func (s *Server) Join(username, password, confirmPassword string) (string, error) {
+	fmt.Println(username, password, confirmPassword)
 	panic("not yet implemented")
 }
 func (s *Server) Login(username, password string) (string, error) {

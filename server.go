@@ -24,7 +24,7 @@ type Server struct {
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", s.getRoot)
-	mux.HandleFunc("GET /auth/create-account", s.getCreateAccount)
+	mux.Handle("GET /auth/create-account", NewCreateAccountPage())
 	mux.HandleFunc("POST /auth/create-account", s.postCreateAccount)
 	mux.HandleFunc("GET /auth/login", s.getLogin)
 	mux.HandleFunc("POST /auth/login", s.postLogin)
@@ -68,13 +68,7 @@ func (s *Server) getRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (s *Server) getCreateAccount(w http.ResponseWriter, r *http.Request) {
-	err := createAccountTemplate.Execute(w, struct{}{})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
+
 func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 	req := &struct {
 		Username        string `json:"username"`
