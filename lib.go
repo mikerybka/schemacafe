@@ -7,4 +7,4 @@ import (
 type Lib struct {
 }
 
-var libTemplate = template.Must(template.New("lib").Parse(fsString(pages, "pages/auth/lib.html")))
+var libTemplate = template.Must(template.New("lib").Parse(fsString(pages, "pages/lib.html")))

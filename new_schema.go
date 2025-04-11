@@ -7,4 +7,4 @@ import (
 type NewSchema struct {
 }
 
-var newSchemaTemplate = template.Must(template.New("new-schema").Parse(fsString(pages, "pages/auth/new-schema.html")))
+var newSchemaTemplate = template.Must(template.New("new-schema").Parse(fsString(pages, "pages/new-schema.html")))

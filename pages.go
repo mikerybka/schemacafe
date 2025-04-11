@@ -4,5 +4,5 @@ import (
 	"embed"
 )
 
-//go:embed pages/*
+//go:embed pages
 var pages embed.FS

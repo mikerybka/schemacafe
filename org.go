@@ -7,4 +7,4 @@ import (
 type Org struct {
 }
 
-var orgTemplate = template.Must(template.New("org").Parse(fsString(pages, "pages/auth/org.html")))
+var orgTemplate = template.Must(template.New("org").Parse(fsString(pages, "pages/org.html")))

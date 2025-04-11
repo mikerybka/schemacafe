@@ -11,6 +11,12 @@ import (
 	"github.com/schemacafe/pkg/basicauth"
 )
 
+func NewServer(workdir string) *Server {
+	return &Server{
+		Workdir: workdir,
+	}
+}
+
 type Server struct {
 	Workdir string
 }
@@ -119,7 +125,9 @@ func (s *Server) getLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (s *Server) postLogin(w http.ResponseWriter, r *http.Request) {}
+func (s *Server) postLogin(w http.ResponseWriter, r *http.Request) {
+
+}
 func (s *Server) getLogout(w http.ResponseWriter, r *http.Request) {
 	err := logoutTemplate.Execute(w, struct{}{})
 	if err != nil {

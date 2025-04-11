@@ -7,4 +7,4 @@ import (
 type SchemaPluarlName struct {
 }
 
-var schemaPluralNameTemplate = template.Must(template.New("schema-plural-name").Parse(fsString(pages, "pages/auth/schema-plural-name.html")))
+var schemaPluralNameTemplate = template.Must(template.New("schema-plural-name").Parse(fsString(pages, "pages/schema-plural-name.html")))
