@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"code.gitea.io/sdk/gitea"
 	"github.com/mikerybka/util"
@@ -104,7 +105,7 @@ func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		req.Username = r.FormValue("username")
+		req.Username = strings.ToLower(r.FormValue("username"))
 		req.Password = r.FormValue("password")
 		req.ConfirmPassword = r.FormValue("confirm_password")
 	}
