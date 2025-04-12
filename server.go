@@ -116,9 +116,15 @@ func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 
 	// Check username blocklist
 	if map[string]bool{
-		"admin":    true,
-		"auth":     true,
-		"settings": true,
+		"admin":     true,
+		"auth":      true,
+		"settings":  true,
+		"internal":  true,
+		"cmd":       true,
+		"pkg":       true,
+		"authorize": true,
+		"login":     true,
+		"logout":    true,
 	}[req.Username] {
 		http.Error(w, "username not allowed", http.StatusBadRequest)
 		return
