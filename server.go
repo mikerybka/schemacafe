@@ -6,19 +6,16 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"code.gitea.io/sdk/gitea"
 	"github.com/mikerybka/authentication"
 	"github.com/mikerybka/util"
 	"github.com/schemacafe/pkg/basicauth"
 )
 
-func NewServer(workdir string) *Server {
-	return &Server{
-		Workdir: workdir,
-	}
-}
-
 type Server struct {
-	Workdir string
+	GiteaURL        string
+	GiteaAdminToken string
+	Host            string
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +67,7 @@ func (s *Server) getRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
+	// Get inputs
 	req := &struct {
 		Username        string `json:"username"`
 		Password        string `json:"password"`
@@ -87,12 +85,42 @@ func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 		req.ConfirmPassword = r.FormValue("confirm_password")
 	}
 
-	token, err := s.authentication().Join(req.Username, req.Password, req.ConfirmPassword)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	// Check passwords match
+	if req.Password != req.ConfirmPassword {
+		http.Error(w, "passwords don't match", http.StatusBadRequest)
 		return
 	}
 
+	// Create gitea account
+	c, err := gitea.NewClient(s.GiteaURL, gitea.SetToken(s.GiteaAdminToken))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	_, _, err = c.AdminCreateUser(gitea.CreateUserOption{
+		Username: req.Username,
+		Email:    fmt.Sprintf("%s@%s", req.Username, s.Host),
+		Password: req.Password,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Create session token
+	c, err = gitea.NewClient(s.GiteaURL, gitea.SetBasicAuth(req.Username, req.Password))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	t, _, err := c.CreateAccessToken(gitea.CreateAccessTokenOption{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	token := t.Token
+
+	// Send outputs
 	if util.Accept(r, "application/json") {
 		err = json.NewEncoder(w).Encode(token)
 		if err != nil {
@@ -112,6 +140,7 @@ func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/home", http.StatusSeeOther)
 	}
 }
+
 func (s *Server) getLogin(w http.ResponseWriter, r *http.Request) {
 	err := loginTemplate.Execute(w, struct{}{})
 	if err != nil {
