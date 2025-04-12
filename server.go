@@ -2,6 +2,7 @@ package schemacafe
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -49,8 +50,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *Server) userID(r *http.Request) (string, error) {
 	token := r.Header.Get("Token")
 	if token == "" {
-		return "public", nil
+		cookie, err := r.Cookie("token")
+		if err != nil {
+			if errors.Is(err, http.ErrNoCookie) {
+				return "public", nil
+			}
+			return "", err
+		}
+		token = cookie.Value
 	}
+
+	fmt.Println(token)
 
 	c, err := gitea.NewClient(s.GiteaURL, gitea.SetToken(token))
 	if err != nil {
@@ -111,10 +121,12 @@ func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	no := false
 	_, _, err = c.AdminCreateUser(gitea.CreateUserOption{
-		Username: req.Username,
-		Email:    fmt.Sprintf("%s@%s", req.Username, s.Host),
-		Password: req.Password,
+		Username:           req.Username,
+		Email:              fmt.Sprintf("%s@%s", req.Username, s.Host),
+		Password:           req.Password,
+		MustChangePassword: &no,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -127,7 +139,10 @@ func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	t, _, err := c.CreateAccessToken(gitea.CreateAccessTokenOption{})
+	t, _, err := c.CreateAccessToken(gitea.CreateAccessTokenOption{
+		Name:   util.RandomID(),
+		Scopes: []gitea.AccessTokenScope{"all"},
+	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -141,11 +156,6 @@ func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 	} else {
-		http.SetCookie(w, &http.Cookie{
-			Name:  "user_id",
-			Value: req.Username,
-			Path:  "/",
-		})
 		http.SetCookie(w, &http.Cookie{
 			Name:  "token",
 			Value: token,
