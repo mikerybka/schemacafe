@@ -4,12 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"path/filepath"
 
 	"code.gitea.io/sdk/gitea"
-	"github.com/mikerybka/authentication"
 	"github.com/mikerybka/util"
-	"github.com/schemacafe/pkg/basicauth"
 )
 
 type Server struct {
@@ -49,8 +46,25 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux.ServeHTTP(w, r)
 }
 
+func (s *Server) userID(r *http.Request) (string, error) {
+	token := r.Header.Get("Token")
+	if token == "" {
+		return "public", nil
+	}
+
+	c, err := gitea.NewClient(s.GiteaURL, gitea.SetToken(token))
+	if err != nil {
+		return "", err
+	}
+	user, _, err := c.GetMyUserInfo()
+	if err != nil {
+		return "", err
+	}
+	return user.UserName, nil
+}
+
 func (s *Server) getRoot(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -160,7 +174,7 @@ func (s *Server) getLogout(w http.ResponseWriter, r *http.Request) {
 }
 func (s *Server) postLogout(w http.ResponseWriter, r *http.Request) {}
 func (s *Server) getNewOrg(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -176,7 +190,7 @@ func (s *Server) getNewOrg(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) putOrg(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -192,7 +206,7 @@ func (s *Server) putOrg(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) getHome(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -208,7 +222,7 @@ func (s *Server) getHome(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) getDeleteOrg(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -224,7 +238,7 @@ func (s *Server) getDeleteOrg(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) deleteOrg(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -240,7 +254,7 @@ func (s *Server) deleteOrg(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) getOrg(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -265,7 +279,7 @@ func (s *Server) getOrg(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) getDeleteLib(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -281,7 +295,7 @@ func (s *Server) getDeleteLib(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) deleteLib(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -297,7 +311,7 @@ func (s *Server) deleteLib(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) getCreateLib(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -322,7 +336,7 @@ func (s *Server) getCreateLib(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) putLib(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -338,7 +352,7 @@ func (s *Server) putLib(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) getCreateSchema(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -363,7 +377,7 @@ func (s *Server) getCreateSchema(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) putSchema(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -379,7 +393,7 @@ func (s *Server) putSchema(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) getSchema(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -404,7 +418,7 @@ func (s *Server) getSchema(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) getSchemaName(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -429,7 +443,7 @@ func (s *Server) getSchemaName(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) putSchemaName(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -445,7 +459,7 @@ func (s *Server) putSchemaName(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) getSchemaPluralName(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -461,7 +475,7 @@ func (s *Server) getSchemaPluralName(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) putSchemaPluralName(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -477,7 +491,7 @@ func (s *Server) putSchemaPluralName(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) getSchemaFields(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -493,7 +507,7 @@ func (s *Server) getSchemaFields(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *Server) putSchemaFields(w http.ResponseWriter, r *http.Request) {
-	userID, err := s.authentication().GetUserID(r)
+	userID, err := s.userID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -507,8 +521,4 @@ func (s *Server) putSchemaFields(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
-}
-
-func (s *Server) authentication() authentication.Service {
-	return basicauth.NewServer(filepath.Join(s.Workdir, "auth"))
 }
