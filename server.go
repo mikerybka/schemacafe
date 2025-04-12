@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"code.gitea.io/sdk/gitea"
 	"github.com/mikerybka/util"
@@ -22,7 +23,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux.HandleFunc("GET /{$}", s.getRoot)
 	mux.Handle("GET /auth/create-account", NewCreateAccountPage())
 	mux.HandleFunc("POST /auth/create-account", s.postCreateAccount)
-	mux.HandleFunc("GET /auth/login", s.getLogin)
+	mux.Handle("GET /auth/login", NewLoginPage())
 	mux.HandleFunc("POST /auth/login", s.postLogin)
 	mux.HandleFunc("GET /auth/logout", s.getLogout)
 	mux.HandleFunc("POST /auth/logout", s.postLogout)
@@ -61,9 +62,12 @@ func (s *Server) userID(r *http.Request) (string, error) {
 		token = cookie.Value
 	}
 
-	fmt.Println(token)
+	_, tokenID, ok := strings.Cut(token, ":")
+	if !ok {
+		return "public", nil
+	}
 
-	c, err := gitea.NewClient(s.GiteaURL, gitea.SetToken(token))
+	c, err := gitea.NewClient(s.GiteaURL, gitea.SetToken(tokenID))
 	if err != nil {
 		return "", err
 	}
@@ -150,15 +154,16 @@ func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	name := util.RandomID()
 	t, _, err := c.CreateAccessToken(gitea.CreateAccessTokenOption{
-		Name:   util.RandomID(),
+		Name:   name,
 		Scopes: []gitea.AccessTokenScope{"all"},
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	token := t.Token
+	token := name + ":" + t.Token
 
 	// Send outputs
 	if util.Accept(r, "application/json") {
@@ -176,15 +181,54 @@ func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) getLogin(w http.ResponseWriter, r *http.Request) {
-	err := loginTemplate.Execute(w, struct{}{})
+func (s *Server) postLogin(w http.ResponseWriter, r *http.Request) {
+	// Get inputs
+	req := &struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}{}
+	if util.ContentType(r, "application/json") {
+		err := json.NewDecoder(r.Body).Decode(req)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	} else {
+		req.Username = strings.ToLower(r.FormValue("username"))
+		req.Password = r.FormValue("password")
+	}
+
+	// Create session token
+	c, err := gitea.NewClient(s.GiteaURL, gitea.SetBasicAuth(req.Username, req.Password))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-}
-func (s *Server) postLogin(w http.ResponseWriter, r *http.Request) {
+	name := util.RandomID()
+	t, _, err := c.CreateAccessToken(gitea.CreateAccessTokenOption{
+		Name:   name,
+		Scopes: []gitea.AccessTokenScope{"all"},
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	token := name + ":" + t.Token
 
+	// Send outputs
+	if util.Accept(r, "application/json") {
+		err = json.NewEncoder(w).Encode(token)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		http.SetCookie(w, &http.Cookie{
+			Name:  "token",
+			Value: token,
+			Path:  "/",
+		})
+		http.Redirect(w, r, "/home", http.StatusSeeOther)
+	}
 }
 func (s *Server) getLogout(w http.ResponseWriter, r *http.Request) {
 	err := logoutTemplate.Execute(w, struct{}{})
@@ -193,7 +237,17 @@ func (s *Server) getLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (s *Server) postLogout(w http.ResponseWriter, r *http.Request) {}
+func (s *Server) postLogout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0), // or time.Now().Add(-1 * time.Hour)
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
 func (s *Server) getNewOrg(w http.ResponseWriter, r *http.Request) {
 	userID, err := s.userID(r)
 	if err != nil {

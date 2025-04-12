@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Schema.cafe</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 400px;
+      margin: 2rem auto;
+      padding: 1rem;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      margin-top: 1.5rem;
+      padding: 0.6rem 1rem;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .error {
+      margin-top: 1rem;
+      color: red;
+      background-color: #fee;
+      padding: 0.75rem;
+      border: 1px solid red;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Login</h1>
+
+  <!-- Error message area (hidden if no errors) -->
+  {{ if .Error }}
+    <div class="error">
+      {{ .Error }}
+    </div>
+  {{ end }}
+
+  <form id="signupForm" method="POST">
+    <label for="username">Username</label>
+    <input 
+      type="text" 
+      id="username" 
+      name="username" 
+      required 
+      autocomplete="username"
+    />
+
+    <label for="password">Password</label>
+    <input 
+      type="password" 
+      id="password" 
+      name="password" 
+      required 
+      minlength="8"
+    />
+
+    <button type="submit">Login</button>
+  </form>
+</body>
+</html>
