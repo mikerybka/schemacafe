@@ -110,6 +110,16 @@ func (s *Server) postCreateAccount(w http.ResponseWriter, r *http.Request) {
 		req.ConfirmPassword = r.FormValue("confirm_password")
 	}
 
+	// Check username blocklist
+	if map[string]bool{
+		"admin":    true,
+		"auth":     true,
+		"settings": true,
+	}[req.Username] {
+		http.Error(w, "username not allowed", http.StatusBadRequest)
+		return
+	}
+
 	// Check passwords match
 	if req.Password != req.ConfirmPassword {
 		http.Error(w, "passwords don't match", http.StatusBadRequest)
