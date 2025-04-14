@@ -3,8 +3,13 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>{{ .Name }} - Schema.cafe</title>
+        <title>{{ .ID }} - Schema.cafe</title>
     </head>
     <body>
+        <pre>{{ range .Libs }}
+<a href="/{{ $.ID }}/{{ . }}">{{ . }}</a>
+{{ end }}
+<a href="/{{ $.ID }}/new">New</a>
+        </pre>
     </body>
 </html>
