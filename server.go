@@ -281,7 +281,7 @@ func (s *Server) putOrg(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -313,7 +313,7 @@ func (s *Server) getDeleteOrg(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -329,7 +329,7 @@ func (s *Server) deleteOrg(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -345,14 +345,16 @@ func (s *Server) getOrg(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	orgID := r.PathValue("orgID")
+	if userID != orgID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
+
 	err = orgTemplate.Execute(w, struct {
-		UserID string
+		Name string
 	}{
-		UserID: userID,
+		Name: orgID,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -370,7 +372,7 @@ func (s *Server) getDeleteLib(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -386,7 +388,7 @@ func (s *Server) deleteLib(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -402,7 +404,7 @@ func (s *Server) getCreateLib(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -427,7 +429,7 @@ func (s *Server) putLib(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -443,7 +445,7 @@ func (s *Server) getCreateSchema(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -468,7 +470,7 @@ func (s *Server) putSchema(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -484,7 +486,7 @@ func (s *Server) getSchema(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -509,7 +511,7 @@ func (s *Server) getSchemaName(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -534,7 +536,7 @@ func (s *Server) putSchemaName(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -550,7 +552,7 @@ func (s *Server) getSchemaPluralName(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -566,7 +568,7 @@ func (s *Server) putSchemaPluralName(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -582,7 +584,7 @@ func (s *Server) getSchemaFields(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
@@ -598,7 +600,7 @@ func (s *Server) putSchemaFields(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
 		return
 	}
-	if r.PathValue("orgID") == userID {
+	if r.PathValue("orgID") != userID {
 		http.Error(w, "403 forbidden", http.StatusForbidden)
 		return
 	}
