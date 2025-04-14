@@ -6,5 +6,26 @@
         <title>New Organziation - Schema.cafe</title>
     </head>
     <body>
+        <h1>New Org</h1>
+
+        <!-- Error message area (hidden if no errors) -->
+        {{ if .Error }}
+            <div class="error">
+            {{ .Error }}
+            </div>
+        {{ end }}
+
+        <form id="signupForm" method="POST">
+            <label for="name">Name</label>
+            <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            required 
+            autocomplete="name"
+            />
+
+            <button type="submit">Create</button>
+        </form>
     </body>
 </html>
