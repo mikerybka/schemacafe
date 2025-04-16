@@ -1,6 +1,7 @@
 package schemacafe
 
 import (
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,10 +20,15 @@ type Server struct {
 	Host            string
 }
 
+//go:embed favicon.ico
+var favicon []byte
+
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", s.getRoot)
-	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {})
+	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(favicon)
+	})
 	mux.Handle("GET /auth/create-account", NewCreateAccountPage())
 	mux.HandleFunc("POST /auth/create-account", s.postCreateAccount)
 	mux.Handle("GET /auth/login", NewLoginPage())
@@ -74,7 +80,7 @@ func (s *Server) userGiteaToken(r *http.Request) (string, string, error) {
 
 	giteaTokenName, giteaToken, ok := strings.Cut(userToken, ":")
 	if !ok {
-		return "", "", fmt.Errorf("public user")
+		return "", "", err
 	}
 	return giteaTokenName, giteaToken, nil
 }
@@ -94,6 +100,9 @@ func (s *Server) userID(r *http.Request) (string, error) {
 	}
 	user, _, err := c.GetMyUserInfo()
 	if err != nil {
+		if err.Error() == "token is required" {
+			return "", nil
+		}
 		return "", err
 	}
 	return user.UserName, nil
